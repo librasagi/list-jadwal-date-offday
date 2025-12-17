@@ -2,9 +2,9 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Jadwal Offday Edbert dan Felina ❤️</title>
+<title>Jadwal Offday Edbert dan Felina</title>
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #ffe6eb, #fff5e6); padding: 20px; min-height: 100vh; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #ffe6eb, #fff5e6); padding: 20px; min-height: 100vh; position: relative; overflow-x: hidden; }
   h1 { color: #c0392b; text-align: center; margin-bottom: 10px; }
   .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; font-style: italic; }
   table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
@@ -17,16 +17,20 @@
   button:hover { background: #c0392b; }
   button.secondary { background: #95a5a6; }
   button.secondary:hover { background: #7f8c8d; }
+  .heart { position: absolute; font-size: 24px; animation: floatUp 2s linear forwards; pointer-events: none; }
+  @keyframes floatUp { 0% {opacity:1; transform: translateY(0);} 100% {opacity:0; transform: translateY(-100px);}} 
 </style>
 </head>
 <body>
 
-<h1>Jadwal Offday Bersama Pacar</h1>
+<h1>Jadwal Offday Edbert dan Felina</h1>
 <p class="subtitle" id="romantic-text"></p>
 
-<button onclick="loginOwner()">🔐 Login Owner</button>
-<button class="secondary" onclick="logoutOwner()">🚪 Logout</button>
-<button onclick="addRow()">➕ Tambah Jadwal</button>
+<div class="controls">
+  <button onclick="loginOwner()">🔐 Login Owner</button>
+  <button class="secondary" onclick="logoutOwner()">🚪 Logout</button>
+  <button onclick="addRow()">➕ Tambah Jadwal</button>
+</div>
 
 <table id="jadwal"></table>
 
@@ -40,11 +44,11 @@ let data = JSON.parse(localStorage.getItem("jadwalOffday")) || [
 ];
 
 const romanticPhrases = [
-  "Jangan kalah sama kerjaan, boskuu! Kalau lelah, inget... ada aku yang siap jadi tempat cerita (plus bonus semangat gratis). ❤️",
+  "Waktu bareng kamu selalu terasa kurang ❤️",
   "Setiap detik bersamamu berharga 💕",
-  "Aku nggak tau kamu bakal ketemu apa hari ini, tapi aku yakin... apapun itu, kamu pasti bisa lewatin. Semangat, ya !!!! 🥰",
+  "Hari ini sempurna untuk quality time 🥰",
   "Aku selalu menantikan momen ini bersamamu 💌",
-  "Cinta selalu bikin senyum 😘"
+  "Cinta kita selalu bikin senyum 😘"
 ];
 
 function showRomanticText() {
@@ -56,7 +60,7 @@ function saveData() { localStorage.setItem("jadwalOffday", JSON.stringify(data))
 
 function loginOwner() {
   let pw = prompt("Masukkan password owner:");
-  if (pw === ownerPassword) { isOwner = true; alert("Mode edit aktif ✅"); }
+  if (pw === ownerPassword) { isOwner = true; alert("Mode edit aktif ✅"); spawnHeart(); }
   else alert("Password salah ❌");
 }
 
@@ -76,20 +80,33 @@ function deleteRow(index) {
   if (confirm("Hapus jadwal ini?")) { data.splice(index,1); data.forEach((d,i)=>d.no=i+1); saveData(); render(); }
 }
 
+function spawnHeart() {
+  const heart = document.createElement('div');
+  heart.className = 'heart';
+  heart.style.left = Math.random() * window.innerWidth + 'px';
+  heart.innerText = '❤️';
+  document.body.appendChild(heart);
+  setTimeout(()=>heart.remove(), 2000);
+}
+
 function render() {
   const t = document.getElementById("jadwal");
-  t.innerHTML = `<tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Jam</th><th>Catatan</th><th>Aksi</th></tr>`;
+  t.innerHTML = `<tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Jam</th><th>Catatan</th><th>H-berapa</th><th>Aksi</th></tr>`;
+  const today = new Date();
   data.forEach((d,i)=>{
     let r = t.insertRow();
     r.insertCell().innerText = d.no;
     r.insertCell().innerText = d.tgl;
     r.insertCell().innerText = d.hari;
     r.insertCell().innerText = d.jam;
-
     let c = r.insertCell(); c.innerText=d.cat; c.className="editable";
-    c.onclick=()=>{ if(!isOwner) return alert("Login dulu"); let n=prompt("Ubah catatan:",d.cat); if(n!==null){ d.cat=n; saveData(); render(); } };
+    c.onclick=()=>{ if(!isOwner) return alert("Login dulu"); let n=prompt("Ubah catatan:",d.cat); if(n!==null){ d.cat=n; saveData(); render(); spawnHeart(); } };
 
-    // edit tgl, hari, jam
+    // hitung H-berapa
+    let eventDate = new Date(d.tgl + 'T' + d.jam);
+    let diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
+    r.insertCell().innerText = diffDays >= 0 ? `H-${diffDays}` : "Lewat";
+
     let editBtn = document.createElement("button");
     editBtn.innerText="✏️";
     editBtn.onclick=()=>{
@@ -97,11 +114,11 @@ function render() {
       let newTgl=prompt("Ubah tanggal:",d.tgl);
       let newHari=prompt("Ubah hari:",d.hari);
       let newJam=prompt("Ubah jam:",d.jam);
-      if(newTgl && newHari && newJam){ d.tgl=newTgl; d.hari=newHari; d.jam=newJam; saveData(); render(); }
+      if(newTgl && newHari && newJam){ d.tgl=newTgl; d.hari=newHari; d.jam=newJam; saveData(); render(); spawnHeart(); }
     };
 
     let aksi=r.insertCell(); aksi.appendChild(editBtn);
-    let del=document.createElement("button"); del.innerText="🗑️"; del.onclick=()=>deleteRow(i); aksi.appendChild(del);
+    let del=document.createElement("button"); del.innerText="🗑️"; del.onclick=()=>{ deleteRow(i); spawnHeart(); }; aksi.appendChild(del);
   });
   showRomanticText();
 }
@@ -109,7 +126,4 @@ function render() {
 render();
 </script>
 
-</body>
-</html>
-
-
+</
