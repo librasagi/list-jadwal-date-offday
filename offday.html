@@ -1,1 +1,79 @@
 offday.html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Jadwal Offday Bersama Pacar</title>
+<style>
+  body { font-family: Arial; background: #fdf6f0; padding: 20px; }
+  h1 { color: #d35400; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+  th { background: #f39c12; color: white; }
+  td { cursor: pointer; }
+  button { margin: 10px 5px; padding: 10px; background: #d35400; color: white; border: none; }
+</style>
+</head>
+<body>
+
+<h1>Jadwal Offday Bersama Pacar</h1>
+
+<button onclick="loginOwner()">🔐 Login Owner</button>
+
+<table id="jadwal">
+  <tr>
+    <th>No</th>
+    <th>Tanggal</th>
+    <th>Hari</th>
+    <th>Catatan</th>
+  </tr>
+</table>
+
+<script>
+const ownerPassword = "270623";
+let isOwner = false;
+
+let data = [
+  {no:1, tgl:"2025-12-20", hari:"Sabtu", cat:"Nonton bareng"},
+  {no:2, tgl:"2025-12-25", hari:"Rabu", cat:"Dinner romantis"}
+];
+
+function loginOwner() {
+  let pw = prompt("Masukkan password owner:");
+  if (pw === ownerPassword) {
+    isOwner = true;
+    alert("Mode edit aktif");
+  } else {
+    alert("Password salah");
+  }
+}
+
+function render() {
+  const t = document.getElementById("jadwal");
+  t.innerHTML = `
+    <tr>
+      <th>No</th><th>Tanggal</th><th>Hari</th><th>Catatan</th>
+    </tr>`;
+  data.forEach((d,i)=>{
+    let r = t.insertRow();
+    r.insertCell().innerText = d.no;
+    r.insertCell().innerText = d.tgl;
+    r.insertCell().innerText = d.hari;
+    let c = r.insertCell();
+    c.innerText = d.cat;
+    c.onclick = ()=>{
+      if(!isOwner) return alert("Login dulu");
+      let n = prompt("Ubah catatan:", d.cat);
+      if(n){ d.cat=n; render(); }
+    };
+  });
+}
+
+render();
+</script>
+
+</body>
+</html>
+
+
+
