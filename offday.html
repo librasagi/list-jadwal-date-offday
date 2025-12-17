@@ -40,6 +40,7 @@
         <th>Tanggal</th>
         <th>Jam</th>
         <th>Catatan</th>
+        <th>Aksi</th>
       </tr>
     </thead>
     <tbody id="jadwal-body"></tbody>
@@ -68,6 +69,17 @@
     const db = firebase.firestore();
     const jadwalRef = db.collection("jadwal");
 
+    // 🔒 Password owner
+    function cekPassword() {
+      const password = prompt("Masukkan password owner:");
+      if(password === "270625") { // ganti sesuai keinginan
+        return true;
+      } else {
+        alert("Password salah! Hanya owner yang bisa edit.");
+        return false;
+      }
+    }
+
     // Ambil & tampilkan data real-time
     jadwalRef.orderBy("tgl").onSnapshot(snapshot => {
       const tbody = document.getElementById("jadwal-body");
@@ -80,22 +92,55 @@
           <td>${d.tgl}</td>
           <td>${d.jam}</td>
           <td>${d.catatan}</td>
+          <td>
+            <button onclick="editJadwal('${doc.id}', '${d.hari}', '${d.tgl}', '${d.jam}', '${d.catatan}')">Edit</button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
     });
 
-    // 🔒 Password owner
-    function cekPassword() {
-      const password = prompt("Masukkan password owner:");
-      if(password === "270625") { // ganti dengan password kalian
-        return true;
+    // Fungsi tambah jadwal
+    function tambahJadwal() {
+      if(!cekPassword()) return;
+
+      const hari = document.getElementById("hari").value;
+      const tgl = document.getElementById("tgl").value;
+      const jam = document.getElementById("jam").value;
+      const catatan = document.getElementById("catatan").value;
+
+      if(hari && tgl && jam) {
+        jadwalRef.add({ hari, tgl, jam, catatan });
+        document.getElementById("hari").value = "";
+        document.getElementById("tgl").value = "";
+        document.getElementById("jam").value = "";
+        document.getElementById("catatan").value = "";
       } else {
-        alert("Password salah! Hanya owner yang bisa edit.");
-        return false;
+        alert("Isi Hari, Tanggal, dan Jam dulu ya!");
       }
     }
 
-    // Fungsi tambah jadwal
-    function tambahJadwal() {
-      if(!cekPassw
+    // Fungsi edit jadwal
+    function editJadwal(id, oldHari, oldTgl, oldJam, oldCatatan) {
+      if(!cekPassword()) return;
+
+      const newHari = prompt("Hari:", oldHari);
+      const newTgl = prompt("Tanggal:", oldTgl);
+      const newJam = prompt("Jam:", oldJam);
+      const newCatatan = prompt("Catatan:", oldCatatan);
+
+      if(newHari && newTgl && newJam) {
+        jadwalRef.doc(id).update({
+          hari: newHari,
+          tgl: newTgl,
+          jam: newJam,
+          catatan: newCatatan
+        });
+      } else {
+        alert("Hari, Tanggal, dan Jam tidak boleh kosong!");
+      }
+    }
+  </script>
+
+</body>
+</html>
