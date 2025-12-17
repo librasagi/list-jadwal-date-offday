@@ -77,7 +77,7 @@ function addRow() {
 
 function deleteRow(index) {
   if (!isOwner) return alert("Login dulu sebagai owner");
-  if (confirm("Hapus jadwal ini?")) { data.splice(index,1); data.forEach((d,i)=>d.no=i+1); saveData(); render(); }
+  if (confirm("Hapus jadwal ini?")) { data.splice(index,1); data.forEach((d,i)=>d.no=i+1); saveData(); render(); spawnHeart(); }
 }
 
 function spawnHeart() {
@@ -99,8 +99,14 @@ function render() {
     r.insertCell().innerText = d.tgl;
     r.insertCell().innerText = d.hari;
     r.insertCell().innerText = d.jam;
+    
     let c = r.insertCell(); c.innerText=d.cat; c.className="editable";
-    c.onclick=()=>{ if(!isOwner) return alert("Login dulu"); let n=prompt("Ubah catatan:",d.cat); if(n!==null){ d.cat=n; saveData(); render(); spawnHeart(); } };
+    // klik langsung edit catatan
+    c.onclick=()=>{ 
+      if(!isOwner) return alert("Login dulu sebagai owner"); 
+      let n=prompt("Ubah catatan:",d.cat); 
+      if(n!==null){ d.cat=n; saveData(); render(); spawnHeart(); } 
+    };
 
     // hitung H-berapa
     let eventDate = new Date(d.tgl + 'T' + d.jam);
@@ -110,7 +116,7 @@ function render() {
     let editBtn = document.createElement("button");
     editBtn.innerText="✏️";
     editBtn.onclick=()=>{
-      if(!isOwner) return alert("Login dulu");
+      if(!isOwner) return alert("Login dulu sebagai owner");
       let newTgl=prompt("Ubah tanggal:",d.tgl);
       let newHari=prompt("Ubah hari:",d.hari);
       let newJam=prompt("Ubah jam:",d.jam);
@@ -126,4 +132,5 @@ function render() {
 render();
 </script>
 
-</
+</body>
+</html>
