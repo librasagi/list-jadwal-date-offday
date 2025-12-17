@@ -35,16 +35,16 @@ const ownerPassword = "270623";
 let isOwner = false;
 
 let data = JSON.parse(localStorage.getItem("jadwalOffday")) || [
-  {no:1, tgl:"2025-12-20", hari:"Sabtu", cat:"Nonton bareng"},
-  {no:2, tgl:"2025-12-25", hari:"Rabu", cat:"Dinner romantis"}
+  {no:1, tgl:"2025-12-20", hari:"Sabtu", jam:"18:00", cat:"Nonton bareng"},
+  {no:2, tgl:"2025-12-25", hari:"Rabu", jam:"20:00", cat:"Dinner romantis"}
 ];
 
 const romanticPhrases = [
-  "Waktu bareng kamu selalu terasa kurang ❤️",
+  "angan kalah sama kerjaan, boskuu! Kalau lelah, inget... ada aku yang siap jadi tempat cerita (plus bonus semangat gratis). ❤️",
   "Setiap detik bersamamu berharga 💕",
-  "Hari ini sempurna untuk quality time 🥰",
+  "Aku nggak tau kamu bakal ketemu apa hari ini, tapi aku yakin... apapun itu, kamu pasti bisa lewatin. Semangat, ya !!!! 🥰",
   "Aku selalu menantikan momen ini bersamamu 💌",
-  "Cinta kita selalu bikin senyum 😘"
+  "Cinta selalu bikin senyum 😘"
 ];
 
 function showRomanticText() {
@@ -66,8 +66,9 @@ function addRow() {
   if (!isOwner) return alert("Login dulu sebagai owner");
   let tgl = prompt("Tanggal (YYYY-MM-DD):");
   let hari = prompt("Hari:");
+  let jam = prompt("Jam (HH:MM):");
   let cat = prompt("Catatan:");
-  if (tgl && hari && cat) { data.push({ no: data.length+1, tgl, hari, cat }); saveData(); render(); }
+  if (tgl && hari && jam && cat) { data.push({ no: data.length+1, tgl, hari, jam, cat }); saveData(); render(); }
 }
 
 function deleteRow(index) {
@@ -77,15 +78,30 @@ function deleteRow(index) {
 
 function render() {
   const t = document.getElementById("jadwal");
-  t.innerHTML = `<tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Catatan</th><th>Aksi</th></tr>`;
+  t.innerHTML = `<tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Jam</th><th>Catatan</th><th>Aksi</th></tr>`;
   data.forEach((d,i)=>{
     let r = t.insertRow();
     r.insertCell().innerText = d.no;
     r.insertCell().innerText = d.tgl;
     r.insertCell().innerText = d.hari;
+    r.insertCell().innerText = d.jam;
+
     let c = r.insertCell(); c.innerText=d.cat; c.className="editable";
     c.onclick=()=>{ if(!isOwner) return alert("Login dulu"); let n=prompt("Ubah catatan:",d.cat); if(n!==null){ d.cat=n; saveData(); render(); } };
-    let aksi=r.insertCell(); let del=document.createElement("button"); del.innerText="🗑️"; del.onclick=()=>deleteRow(i); aksi.appendChild(del);
+
+    // edit tgl, hari, jam
+    let editBtn = document.createElement("button");
+    editBtn.innerText="✏️";
+    editBtn.onclick=()=>{
+      if(!isOwner) return alert("Login dulu");
+      let newTgl=prompt("Ubah tanggal:",d.tgl);
+      let newHari=prompt("Ubah hari:",d.hari);
+      let newJam=prompt("Ubah jam:",d.jam);
+      if(newTgl && newHari && newJam){ d.tgl=newTgl; d.hari=newHari; d.jam=newJam; saveData(); render(); }
+    };
+
+    let aksi=r.insertCell(); aksi.appendChild(editBtn);
+    let del=document.createElement("button"); del.innerText="🗑️"; del.onclick=()=>deleteRow(i); aksi.appendChild(del);
   });
   showRomanticText();
 }
@@ -95,4 +111,3 @@ render();
 
 </body>
 </html>
-
