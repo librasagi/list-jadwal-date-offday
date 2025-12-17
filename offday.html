@@ -4,21 +4,21 @@
 <meta charset="UTF-8">
 <title>Jadwal Offday Edbert dan Felina</title>
 <style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #ffe6eb, #fff5e6); padding: 20px; min-height: 100vh; position: relative; overflow-x: hidden; }
-  h1 { color: #c0392b; text-align: center; margin-bottom: 10px; }
-  .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; font-style: italic; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
-  th, td { padding: 12px; text-align: center; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #ffe6eb, #fff5e6); padding: 20px; min-height: 100vh; position: relative; overflow-x: hidden; transition: background 3s ease; }
+  h1 { color: #c0392b; text-align: center; margin-bottom: 10px; text-shadow: 1px 1px 5px rgba(0,0,0,0.2); }
+  .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; font-style: italic; font-size: 18px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: transform 0.3s; }
+  th, td { padding: 12px; text-align: center; transition: background 0.3s, transform 0.3s; }
   th { background: #e74c3c; color: white; }
   tr:nth-child(even) td { background: #fff7f8; }
   td.editable { cursor: pointer; }
   .controls { text-align: center; margin-top: 15px; }
   button { margin: 6px; padding: 10px 16px; background: #e74c3c; color: white; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; transition: 0.3s; }
-  button:hover { background: #c0392b; }
+  button:hover { background: #c0392b; transform: scale(1.05); }
   button.secondary { background: #95a5a6; }
-  button.secondary:hover { background: #7f8c8d; }
-  .heart { position: absolute; font-size: 24px; animation: floatUp 2s linear forwards; pointer-events: none; }
-  @keyframes floatUp { 0% {opacity:1; transform: translateY(0);} 100% {opacity:0; transform: translateY(-100px);}} 
+  button.secondary:hover { background: #7f8c8d; transform: scale(1.05); }
+  .heart, .confetti { position: absolute; font-size: 24px; animation: floatUp 2s linear forwards; pointer-events: none; }
+  @keyframes floatUp { 0% {opacity:1; transform: translateY(0) rotate(0deg);} 100% {opacity:0; transform: translateY(-100px) rotate(360deg);}} 
 </style>
 </head>
 <body>
@@ -60,7 +60,7 @@ function saveData() { localStorage.setItem("jadwalOffday", JSON.stringify(data))
 
 function loginOwner() {
   let pw = prompt("Masukkan password owner:");
-  if (pw === ownerPassword) { isOwner = true; alert("Mode edit aktif ✅"); spawnHeart(); }
+  if (pw === ownerPassword) { isOwner = true; alert("Mode edit aktif ✅"); spawnEffect(); }
   else alert("Password salah ❌");
 }
 
@@ -72,21 +72,32 @@ function addRow() {
   let hari = prompt("Hari:");
   let jam = prompt("Jam (HH:MM):");
   let cat = prompt("Catatan:");
-  if (tgl && hari && jam && cat) { data.push({ no: data.length+1, tgl, hari, jam, cat }); saveData(); render(); }
+  if (tgl && hari && jam && cat) { data.push({ no: data.length+1, tgl, hari, jam, cat }); saveData(); render(); spawnEffect(); }
 }
 
 function deleteRow(index) {
   if (!isOwner) return alert("Login dulu sebagai owner");
-  if (confirm("Hapus jadwal ini?")) { data.splice(index,1); data.forEach((d,i)=>d.no=i+1); saveData(); render(); spawnHeart(); }
+  if (confirm("Hapus jadwal ini?")) { data.splice(index,1); data.forEach((d,i)=>d.no=i+1); saveData(); render(); spawnEffect(); }
 }
 
-function spawnHeart() {
+function spawnEffect() {
+  // Heart
   const heart = document.createElement('div');
   heart.className = 'heart';
   heart.style.left = Math.random() * window.innerWidth + 'px';
   heart.innerText = '❤️';
   document.body.appendChild(heart);
   setTimeout(()=>heart.remove(), 2000);
+  // Confetti
+  for(let i=0;i<5;i++){
+    const c = document.createElement('div');
+    c.className='confetti';
+    c.style.left=Math.random()*window.innerWidth+'px';
+    c.style.color=['#ff5c5c','#ffb3b3','#ff8080','#ffc0cb'][Math.floor(Math.random()*4)];
+    c.innerText='✨';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2000);
+  }
 }
 
 function render() {
@@ -101,14 +112,12 @@ function render() {
     r.insertCell().innerText = d.jam;
     
     let c = r.insertCell(); c.innerText=d.cat; c.className="editable";
-    // klik langsung edit catatan
     c.onclick=()=>{ 
       if(!isOwner) return alert("Login dulu sebagai owner"); 
       let n=prompt("Ubah catatan:",d.cat); 
-      if(n!==null){ d.cat=n; saveData(); render(); spawnHeart(); } 
+      if(n!==null){ d.cat=n; saveData(); render(); spawnEffect(); } 
     };
 
-    // hitung H-berapa
     let eventDate = new Date(d.tgl + 'T' + d.jam);
     let diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
     r.insertCell().innerText = diffDays >= 0 ? `H-${diffDays}` : "Lewat";
@@ -120,14 +129,21 @@ function render() {
       let newTgl=prompt("Ubah tanggal:",d.tgl);
       let newHari=prompt("Ubah hari:",d.hari);
       let newJam=prompt("Ubah jam:",d.jam);
-      if(newTgl && newHari && newJam){ d.tgl=newTgl; d.hari=newHari; d.jam=newJam; saveData(); render(); spawnHeart(); }
+      if(newTgl && newHari && newJam){ d.tgl=newTgl; d.hari=newHari; d.jam=newJam; saveData(); render(); spawnEffect(); }
     };
 
     let aksi=r.insertCell(); aksi.appendChild(editBtn);
-    let del=document.createElement("button"); del.innerText="🗑️"; del.onclick=()=>{ deleteRow(i); spawnHeart(); }; aksi.appendChild(del);
+    let del=document.createElement("button"); del.innerText="🗑️"; del.onclick=()=>{ deleteRow(i); spawnEffect(); }; aksi.appendChild(del);
   });
   showRomanticText();
 }
+
+// Background gradient animasi
+let gradientStep = 0;
+setInterval(()=>{
+  gradientStep += 0.002;
+  document.body.style.background = `linear-gradient(${gradientStep*360}deg, #ffe6eb, #fff5e6)`;
+},30);
 
 render();
 </script>
