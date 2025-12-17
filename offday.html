@@ -1,4 +1,3 @@
-offday.html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -10,8 +9,9 @@ offday.html
   table { width: 100%; border-collapse: collapse; margin-top: 20px; }
   th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
   th { background: #f39c12; color: white; }
-  td { cursor: pointer; }
-  button { margin: 10px 5px; padding: 10px; background: #d35400; color: white; border: none; }
+  td.editable { cursor: pointer; }
+  button { margin: 10px 5px; padding: 10px; background: #d35400; color: white; border: none; border-radius: 6px; }
+  button.secondary { background: #7f8c8d; }
 </style>
 </head>
 <body>
@@ -19,32 +19,59 @@ offday.html
 <h1>Jadwal Offday Bersama Pacar</h1>
 
 <button onclick="loginOwner()">🔐 Login Owner</button>
+<button class="secondary" onclick="logoutOwner()">🚪 Logout</button>
+<button onclick="addRow()">➕ Tambah Jadwal</button>
 
-<table id="jadwal">
-  <tr>
-    <th>No</th>
-    <th>Tanggal</th>
-    <th>Hari</th>
-    <th>Catatan</th>
-  </tr>
-</table>
+<table id="jadwal"></table>
 
 <script>
 const ownerPassword = "270623";
 let isOwner = false;
 
-let data = [
+// ambil data dari localStorage, kalau belum ada pakai default
+let data = JSON.parse(localStorage.getItem("jadwalOffday")) || [
   {no:1, tgl:"2025-12-20", hari:"Sabtu", cat:"Nonton bareng"},
   {no:2, tgl:"2025-12-25", hari:"Rabu", cat:"Dinner romantis"}
 ];
+
+function saveData() {
+  localStorage.setItem("jadwalOffday", JSON.stringify(data));
+}
 
 function loginOwner() {
   let pw = prompt("Masukkan password owner:");
   if (pw === ownerPassword) {
     isOwner = true;
-    alert("Mode edit aktif");
+    alert("Mode edit aktif ✅");
   } else {
-    alert("Password salah");
+    alert("Password salah ❌");
+  }
+}
+
+function logoutOwner() {
+  isOwner = false;
+  alert("Logout berhasil");
+}
+
+function addRow() {
+  if (!isOwner) return alert("Login dulu sebagai owner");
+  let tgl = prompt("Tanggal (YYYY-MM-DD):");
+  let hari = prompt("Hari:");
+  let cat = prompt("Catatan:");
+  if (tgl && hari && cat) {
+    data.push({ no: data.length + 1, tgl, hari, cat });
+    saveData();
+    render();
+  }
+}
+
+function deleteRow(index) {
+  if (!isOwner) return alert("Login dulu sebagai owner");
+  if (confirm("Hapus jadwal ini?")) {
+    data.splice(index, 1);
+    data.forEach((d,i)=> d.no = i+1);
+    saveData();
+    render();
   }
 }
 
@@ -52,20 +79,33 @@ function render() {
   const t = document.getElementById("jadwal");
   t.innerHTML = `
     <tr>
-      <th>No</th><th>Tanggal</th><th>Hari</th><th>Catatan</th>
+      <th>No</th>
+      <th>Tanggal</th>
+      <th>Hari</th>
+      <th>Catatan</th>
+      <th>Aksi</th>
     </tr>`;
+
   data.forEach((d,i)=>{
     let r = t.insertRow();
     r.insertCell().innerText = d.no;
     r.insertCell().innerText = d.tgl;
     r.insertCell().innerText = d.hari;
+
     let c = r.insertCell();
     c.innerText = d.cat;
+    c.className = "editable";
     c.onclick = ()=>{
       if(!isOwner) return alert("Login dulu");
       let n = prompt("Ubah catatan:", d.cat);
-      if(n){ d.cat=n; render(); }
+      if(n !== null){ d.cat = n; saveData(); render(); }
     };
+
+    let aksi = r.insertCell();
+    let del = document.createElement("button");
+    del.innerText = "🗑️";
+    del.onclick = ()=> deleteRow(i);
+    aksi.appendChild(del);
   });
 }
 
@@ -74,6 +114,3 @@ render();
 
 </body>
 </html>
-
-
-
