@@ -1,153 +1,116 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Jadwal Offday Edbert dan Felina</title>
-<style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: linear-gradient(135deg, #ffe6eb, #fff5e6); padding: 20px; min-height: 100vh; position: relative; overflow-x: hidden; transition: background 3s ease; }
-  h1 { color: #c0392b; text-align: center; margin-bottom: 10px; text-shadow: 1px 1px 5px rgba(0,0,0,0.2); }
-  .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; font-style: italic; font-size: 18px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08); transition: transform 0.3s; }
-  th, td { padding: 12px; text-align: center; transition: background 0.3s, transform 0.3s; }
-  th { background: #e74c3c; color: white; }
-  tr:nth-child(even) td { background: #fff7f8; }
-  td.editable { cursor: pointer; }
-  .controls { text-align: center; margin-top: 15px; }
-  button { margin: 6px; padding: 10px 16px; background: #e74c3c; color: white; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; transition: 0.3s; }
-  button:hover { background: #c0392b; transform: scale(1.05); }
-  button.secondary { background: #95a5a6; }
-  button.secondary:hover { background: #7f8c8d; transform: scale(1.05); }
-  .heart, .confetti { position: absolute; font-size: 24px; animation: floatUp 2s linear forwards; pointer-events: none; }
-  @keyframes floatUp { 0% {opacity:1; transform: translateY(0) rotate(0deg);} 100% {opacity:0; transform: translateY(-100px) rotate(360deg);}} 
-</style>
+  <meta charset="UTF-8">
+  <title>Jadwal Offday Edbert & Felina</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-image: url('images/bg.jpg'); /* ganti foto kalian */
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { font-size: 2.5em; margin-bottom: 20px; }
+    table { margin: auto; border-collapse: collapse; width: 80%; background: rgba(0,0,0,0.5); }
+    th, td { padding: 10px; border: 1px solid #fff; }
+    th { background: rgba(255,255,255,0.2); }
+    input, button { padding: 8px; margin: 5px; }
+    .form-container { margin-bottom: 30px; }
+  </style>
 </head>
 <body>
 
-<h1>Jadwal Offday Edbert dan Felina</h1>
-<p class="subtitle" id="romantic-text"></p>
+  <h1>Jadwal Offday Edbert & Felina 💕</h1>
 
-<div class="controls">
-  <button onclick="loginOwner()">🔐 Login Owner</button>
-  <button class="secondary" onclick="logoutOwner()">🚪 Logout</button>
-  <button onclick="addRow()">➕ Tambah Jadwal</button>
-</div>
-
-<table id="jadwal"></table>
-
-<script>
-const ownerPassword = "270623";
-let isOwner = false;
-
-let data = JSON.parse(localStorage.getItem("jadwalOffday")) || [
-  {no:1, tgl:"2025-12-20", hari:"Sabtu", jam:"18:00", cat:"Nonton bareng"},
-  {no:2, tgl:"2025-12-25", hari:"Rabu", jam:"20:00", cat:"Dinner romantis"}
-];
-
-const romanticPhrases = [
+  const romanticPhrases = [
   "Jangan kalah sama kerjaan, boskuu! Kalau lelah, inget... ada aku yang siap jadi tempat cerita (plus bonus semangat gratis). ❤️",
   "Setiap detik bersamamu berharga 💕",
   "Aku nggak tau kamu bakal ketemu apa hari ini, tapi aku yakin... apapun itu, kamu pasti bisa lewatin. Semangat, ya !!!! 🥰",
   "Aku selalu menantikan momen ini bersamamu 💌",
   "Cinta kita selalu bikin senyum 😘"
 ];
+  
+  <div class="form-container">
+    <input type="text" id="hari" placeholder="Hari">
+    <input type="date" id="tgl">
+    <input type="time" id="jam">
+    <input type="text" id="catatan" placeholder="Catatan">
+    <button onclick="tambahJadwal()">Tambah Jadwal</button>
+  </div>
 
-function showRomanticText() {
-  const idx = Math.floor(Math.random() * romanticPhrases.length);
-  document.getElementById('romantic-text').innerText = romanticPhrases[idx];
-}
+  <table>
+    <thead>
+      <tr>
+        <th>Hari</th>
+        <th>Tanggal</th>
+        <th>Jam</th>
+        <th>Catatan</th>
+      </tr>
+    </thead>
+    <tbody id="jadwal-body"></tbody>
+  </table>
 
-function saveData() { localStorage.setItem("jadwalOffday", JSON.stringify(data)); }
+  <!-- Script lama (animasi / efek khusus) -->
+  <script src="script-lama.js"></script>
 
-function loginOwner() {
-  let pw = prompt("Masukkan password owner:");
-  if (pw === ownerPassword) { isOwner = true; alert("Mode edit aktif ✅"); spawnEffect(); }
-  else alert("Password salah ❌");
-}
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-function logoutOwner() { isOwner = false; alert("Logout berhasil"); }
-
-function addRow() {
-  if (!isOwner) return alert("Login dulu sebagai owner");
-  let tgl = prompt("Tanggal (YYYY-MM-DD):");
-  let hari = prompt("Hari:");
-  let jam = prompt("Jam (HH:MM):");
-  let cat = prompt("Catatan:");
-  if (tgl && hari && jam && cat) { data.push({ no: data.length+1, tgl, hari, jam, cat }); saveData(); render(); spawnEffect(); }
-}
-
-function deleteRow(index) {
-  if (!isOwner) return alert("Login dulu sebagai owner");
-  if (confirm("Hapus jadwal ini?")) { data.splice(index,1); data.forEach((d,i)=>d.no=i+1); saveData(); render(); spawnEffect(); }
-}
-
-function spawnEffect() {
-  // Heart
-  const heart = document.createElement('div');
-  heart.className = 'heart';
-  heart.style.left = Math.random() * window.innerWidth + 'px';
-  heart.innerText = '❤️';
-  document.body.appendChild(heart);
-  setTimeout(()=>heart.remove(), 2000);
-  // Confetti
-  for(let i=0;i<5;i++){
-    const c = document.createElement('div');
-    c.className='confetti';
-    c.style.left=Math.random()*window.innerWidth+'px';
-    c.style.color=['#ff5c5c','#ffb3b3','#ff8080','#ffc0cb'][Math.floor(Math.random()*4)];
-    c.innerText='✨';
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(),2000);
-  }
-}
-
-function render() {
-  const t = document.getElementById("jadwal");
-  t.innerHTML = `<tr><th>No</th><th>Tanggal</th><th>Hari</th><th>Jam</th><th>Catatan</th><th>H-berapa</th><th>Aksi</th></tr>`;
-  const today = new Date();
-  data.forEach((d,i)=>{
-    let r = t.insertRow();
-    r.insertCell().innerText = d.no;
-    r.insertCell().innerText = d.tgl;
-    r.insertCell().innerText = d.hari;
-    r.insertCell().innerText = d.jam;
-    
-    let c = r.insertCell(); c.innerText=d.cat; c.className="editable";
-    c.onclick=()=>{ 
-      if(!isOwner) return alert("Login dulu sebagai owner"); 
-      let n=prompt("Ubah catatan:",d.cat); 
-      if(n!==null){ d.cat=n; saveData(); render(); spawnEffect(); } 
+  <script>
+    // 🔥 Pasang firebaseConfig kamu di sini
+    const firebaseConfig = {
+      apiKey: "AIzaSyBoifVdx6CUv5BMNuBqPuSiWXjpzAc-DRk",
+      authDomain: "jadwaloffday.firebaseapp.com",
+      projectId: "jadwaloffday",
+      storageBucket: "jadwaloffday.firebasestorage.app",
+      messagingSenderId: "505829453100",
+      appId: "1:505829453100:web:41f500b2ab24733edc1089",
+      measurementId: "G-2948YXR7TP"
     };
 
-    let eventDate = new Date(d.tgl + 'T' + d.jam);
-    let diffDays = Math.ceil((eventDate - today)/(1000*60*60*24));
-    r.insertCell().innerText = diffDays >= 0 ? `H-${diffDays}` : "Lewat";
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const jadwalRef = db.collection("jadwal");
 
-    let editBtn = document.createElement("button");
-    editBtn.innerText="✏️";
-    editBtn.onclick=()=>{
-      if(!isOwner) return alert("Login dulu sebagai owner");
-      let newTgl=prompt("Ubah tanggal:",d.tgl);
-      let newHari=prompt("Ubah hari:",d.hari);
-      let newJam=prompt("Ubah jam:",d.jam);
-      if(newTgl && newHari && newJam){ d.tgl=newTgl; d.hari=newHari; d.jam=newJam; saveData(); render(); spawnEffect(); }
-    };
+    // Ambil & tampilkan data real-time
+    jadwalRef.orderBy("tgl").onSnapshot(snapshot => {
+      const tbody = document.getElementById("jadwal-body");
+      tbody.innerHTML = "";
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.hari}</td>
+          <td>${d.tgl}</td>
+          <td>${d.jam}</td>
+          <td>${d.catatan}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
 
-    let aksi=r.insertCell(); aksi.appendChild(editBtn);
-    let del=document.createElement("button"); del.innerText="🗑️"; del.onclick=()=>{ deleteRow(i); spawnEffect(); }; aksi.appendChild(del);
-  });
-  showRomanticText();
-}
+    // Fungsi tambah jadwal
+    function tambahJadwal() {
+      const hari = document.getElementById("hari").value;
+      const tgl = document.getElementById("tgl").value;
+      const jam = document.getElementById("jam").value;
+      const catatan = document.getElementById("catatan").value;
 
-// Background gradient animasi
-let gradientStep = 0;
-setInterval(()=>{
-  gradientStep += 0.002;
-  document.body.style.background = `linear-gradient(${gradientStep*360}deg, #ffe6eb, #fff5e6)`;
-},30);
-
-render();
-</script>
+      if(hari && tgl && jam) {
+        jadwalRef.add({ hari, tgl, jam, catatan });
+        document.getElementById("hari").value = "";
+        document.getElementById("tgl").value = "";
+        document.getElementById("jam").value = "";
+        document.getElementById("catatan").value = "";
+      } else {
+        alert("Isi Hari, Tanggal, dan Jam dulu ya!");
+      }
+    }
+  </script>
 
 </body>
 </html>
-
