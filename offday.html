@@ -25,14 +25,6 @@
 
   <h1>Jadwal Offday Edbert & Felina 💕</h1>
 
-  const romanticPhrases = [
-  "Jangan kalah sama kerjaan, boskuu! Kalau lelah, inget... ada aku yang siap jadi tempat cerita (plus bonus semangat gratis). ❤️",
-  "Setiap detik bersamamu berharga 💕",
-  "Aku nggak tau kamu bakal ketemu apa hari ini, tapi aku yakin... apapun itu, kamu pasti bisa lewatin. Semangat, ya !!!! 🥰",
-  "Aku selalu menantikan momen ini bersamamu 💌",
-  "Cinta kita selalu bikin senyum 😘"
-];
-  
   <div class="form-container">
     <input type="text" id="hari" placeholder="Hari">
     <input type="date" id="tgl">
@@ -61,7 +53,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // 🔥 Pasang firebaseConfig kamu di sini
+    // 🔥 Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBoifVdx6CUv5BMNuBqPuSiWXjpzAc-DRk",
       authDomain: "jadwaloffday.firebaseapp.com",
@@ -93,24 +85,17 @@
       });
     });
 
-    // Fungsi tambah jadwal
-    function tambahJadwal() {
-      const hari = document.getElementById("hari").value;
-      const tgl = document.getElementById("tgl").value;
-      const jam = document.getElementById("jam").value;
-      const catatan = document.getElementById("catatan").value;
-
-      if(hari && tgl && jam) {
-        jadwalRef.add({ hari, tgl, jam, catatan });
-        document.getElementById("hari").value = "";
-        document.getElementById("tgl").value = "";
-        document.getElementById("jam").value = "";
-        document.getElementById("catatan").value = "";
+    // 🔒 Password owner
+    function cekPassword() {
+      const password = prompt("Masukkan password owner:");
+      if(password === "270625") { // ganti dengan password kalian
+        return true;
       } else {
-        alert("Isi Hari, Tanggal, dan Jam dulu ya!");
+        alert("Password salah! Hanya owner yang bisa edit.");
+        return false;
       }
     }
-  </script>
 
-</body>
-</html>
+    // Fungsi tambah jadwal
+    function tambahJadwal() {
+      if(!cekPassw
